@@ -36,6 +36,10 @@ client.on("message", async (topic, messageBuffer) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("Hello from Express!").status(200);
+});
+
 // Start Express
 const PORT = process.env.PORT || 6069;
 app.listen(PORT, () => { console.log(`🚀 Express server running on port ${PORT}`) });
