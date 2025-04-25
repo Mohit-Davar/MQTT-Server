@@ -1,38 +1,41 @@
 require('dotenv').config();
-var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
+const express = require('express');
+const mqtt = require('mqtt');
+const axios = require('axios');
+const app = express();
 
-app.all('/*', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "POST, GET");
-  next();
+// MQTT Options
+const mqttOptions = {
+  host: process.env.MQTT_HOST,
+  port: 8883,
+  protocol: 'mqtts',
+  username: process.env.MQTT_USER,
+  password: process.env.MQTT_PASS
+};
+
+const client = mqtt.connect(mqttOptions);
+
+client.on("connect", () => {
+  console.log("✅ Connected to HiveMQ");
+
+  client.subscribe("eastmen/+", (err) => {
+    if (!err) console.log("✅ Subscribed to 'eastmen/+'");
+  });
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-var ingredients = [
-  { id: "234kjw", text: "Eggs" },
-  { id: "as82w", text: "Milk" },
-  { id: "234sk1", text: "Bacon" },
-  { id: "ppo3j3", text: "Frog Legs" }
-];
-
-app.get('/ingredients', function(req, res) {
-  console.log("GET From SERVER");
-  res.send(ingredients);
+client.on("message", async (topic, messageBuffer) => {
+  if (topic.startsWith("eastmen/")) {
+    const id = topic.split("/")[1];
+    console.log(`topic: ${topic}, id: ${id}`);
+    try {
+      const response = await axios.post(`${process.env.EASTMEN_SERVER_LINK}/api/eastmen/${id}`, {});
+      console.log("✅ POST successful:", response.data);
+    } catch (error) {
+      console.error("❌ Error in POST:", error.response?.data || error.message);
+    }
+  }
 });
 
-app.post('/ingredients', function(req, res) {
-  var ingredient = req.body;
-  console.log(req.body);
-  ingredients.push(ingredient);
-  res.status(200).send("Successfully posted ingredient");
-});
-
+// Start Express
 const PORT = process.env.PORT || 6069;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.listen(PORT, () => { console.log(`🚀 Express server running on port ${PORT}`) });
