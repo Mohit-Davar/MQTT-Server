@@ -12,34 +12,41 @@ const mqttOptions = {
   username: process.env.MQTT_USER,
   password: process.env.MQTT_PASS
 };
-
 const client = mqtt.connect(mqttOptions);
+
+const orgServerMap = {
+  "eastmen": process.env.EASTMEN_SERVER_LINK,
+  "fuel-data": process.env.JBR_SERVER_LINK,
+};
 
 client.on("connect", () => {
   console.log("✅ Connected to HiveMQ");
-
-  client.subscribe("eastmen/+", (err) => {
-    if (!err) console.log("✅ Subscribed to 'eastmen/+'");
+  client.subscribe("+/+", (err) => {
+    if (!err) console.log("✅ Subscribed to all topics");
+    else console.error("❌ Subscription error:", err);
   });
 });
 
 client.on("message", async (topic, messageBuffer) => {
-  if (topic.startsWith("eastmen/")) {
-    const id = topic.split("/")[1];
-    console.log(`topic: ${topic}, id: ${id}`);
-    try {
-      const response = await axios.post(`${process.env.EASTMEN_SERVER_LINK}/api/eastmen/${id}`, {});
-      console.log("✅ POST successful:", response.data);
-    } catch (error) {
-      console.error("❌ Error in POST:", error.response?.data || error.message);
-    }
+  const [org, deviceId] = topic.split("/");
+  const messageStr = messageBuffer.toString();
+  const payload = JSON.parse(messageStr);
+  const baseUrl = orgServerMap[org.toLowerCase()];
+  if (!baseUrl) {
+    console.warn(`⚠️ No server URL configured for org: ${org}`);
+    return;
+  }
+  const url = `${baseUrl}/api/${org}/${deviceId}`;
+  console.log(`➡️ Forwarding to ${url} with payload:`, payload);
+  try {
+    const response = await axios.post(url, payload);
+    console.log("✅ POST successful:", response.data);
+  } catch (error) {
+    console.error("❌ Error in POST:", error.response?.data || error.message);
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello from Express!").status(200);
-});
+app.get("/", (req, res) => { res.status(200).send("Hello from Express!") });
 
-// Start Express
 const PORT = process.env.PORT || 6069;
 app.listen(PORT, () => { console.log(`🚀 Express server running on port ${PORT}`) });
