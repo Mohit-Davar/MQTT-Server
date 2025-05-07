@@ -46,7 +46,7 @@ client.on("message", async (topic, messageBuffer) => {
   }
 });
 
-app.get("/", (req, res) => { res.status(200).send("Hello from Express!") });
+app.get("/", (req, res) => { res.status(200).json({"msg":"Done"}) });
 
 const PORT = process.env.PORT || 6069;
 app.listen(PORT, () => { console.log(`🚀 Express server running on port ${PORT}`) });
