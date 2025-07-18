@@ -36,7 +36,7 @@ client.on("message", async (topic, messageBuffer) => {
     console.warn(`⚠️ No server URL configured for org: ${org}`);
     return;
   }
-  const url = `${baseUrl}/api/${org}/${deviceId}`;
+  const url = `${baseUrl}/${deviceId}`;
   console.log(`➡️ Forwarding to ${url} with payload:`, payload);
   try {
     const response = await axios.post(url, payload);
@@ -46,7 +46,7 @@ client.on("message", async (topic, messageBuffer) => {
   }
 });
 
-app.get("/", (req, res) => { res.status(200).json({"msg":"Done"}) });
+app.get("/", (req, res) => { res.status(200).json({ "msg": "Done" }) });
 
 const PORT = process.env.PORT || 6069;
 app.listen(PORT, () => { console.log(`🚀 Express server running on port ${PORT}`) });
