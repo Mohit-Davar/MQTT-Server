@@ -15,7 +15,7 @@ const mqttOptions = {
 const client = mqtt.connect(mqttOptions);
 
 const orgServerMap = {
-  "eastmen": process.env.EASTMEN_SERVER_LINK,
+  "count": process.env.EASTMEN_SERVER_LINK,
   "etp": process.env.JBR_SERVER_LINK,
 };
 
