@@ -16,7 +16,7 @@ const client = mqtt.connect(mqttOptions);
 
 const orgServerMap = {
   "eastmen": process.env.EASTMEN_SERVER_LINK,
-  "fuel-data": process.env.JBR_SERVER_LINK,
+  "etp": process.env.JBR_SERVER_LINK,
 };
 
 client.on("connect", () => {
